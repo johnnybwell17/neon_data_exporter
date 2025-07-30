@@ -1,9 +1,13 @@
+import os
 import requests
 import pandas as pd
 from tqdm import tqdm
 
 # Replace this with your actual token
-API_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL2RhdGEubmVvbnNjaWVuY2Uub3JnL2FwaS92MC8iLCJzdWIiOiJqb2huLmJsYWNrd2VsbEBjb2xvc3RhdGUuZWR1Iiwic2NvcGUiOiJyYXRlOnB1YmxpYyIsImlzcyI6Imh0dHBzOi8vZGF0YS5uZW9uc2NpZW5jZS5vcmcvIiwiZXhwIjoxOTExNTg4NzEzLCJpYXQiOjE3NTM5MDg3MTMsImVtYWlsIjoiam9obi5ibGFja3dlbGxAY29sb3RhdGUuZWR1In0.Wzdi0FToHPg3ymH_CJ7BJg-5tAjout8fsp3IrAmmV5OkyjxEemarrvwUp_Slq_IAmPZsybSrvyNGRhR9NWAHqw"
+API_TOKEN = os.getenv("NEON_API_TOKEN")
+if not API_TOKEN:
+    raise ValueError("Missing NEON_API_TOKEN in .env")
+
 SITE = "CPER"  # Central Plains Experimental Range
 
 # Add headers for authentication

@@ -34,3 +34,5 @@
 **/*.eslintcache
 
 .venv
+
+.env # Local environment variables
