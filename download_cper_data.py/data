@@ -1,0 +1,65 @@
+import requests
+import pandas as pd
+from tqdm import tqdm
+
+# Replace this with your actual token
+API_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL2RhdGEubmVvbnNjaWVuY2Uub3JnL2FwaS92MC8iLCJzdWIiOiJqb2huLmJsYWNrd2VsbEBjb2xvc3RhdGUuZWR1Iiwic2NvcGUiOiJyYXRlOnB1YmxpYyIsImlzcyI6Imh0dHBzOi8vZGF0YS5uZW9uc2NpZW5jZS5vcmcvIiwiZXhwIjoxOTExNTg4NzEzLCJpYXQiOjE3NTM5MDg3MTMsImVtYWlsIjoiam9obi5ibGFja3dlbGxAY29sb3N0YXRlLmVkdSJ9.Wzdi0FToHPg3ymH_CJ7BJg-5tAjout8fsp3IrAmmV5OkyjxEemarrvwUp_Slq_IAmPZsybSrvyNGRhR9NWAHqw"
+SITE = "CPER"  # Central Plains Experimental Range
+
+# Add headers for authentication
+HEADERS = {
+    'X-API-Token': API_TOKEN
+}
+
+# Base URL
+BASE_URL = "https://data.neonscience.org/api/v0"
+
+# Example list of data products (we'll expand this soon)
+DATA_PRODUCTS = {
+    "DP1.00094.001": "Soil temperature",
+    "DP1.00066.001": "Soil water content and salinity",
+    "DP1.00041.001": "PAR",
+    "DP1.00023.001": "Barometric pressure",
+    "DP1.00024.001": "Relative humidity and temperature",
+}
+
+# Pull available months for a given product
+def get_months(product):
+    url = f"{BASE_URL}/products/{product}"
+    r = requests.get(url, headers=HEADERS)
+    if r.ok:
+        all_sites = r.json()['data']['siteCodes']
+        for site_entry in all_sites:
+            if site_entry['siteCode'] == SITE:
+                return [m['month'] for m in site_entry['availableMonths']]
+        print(f"No data found for site {SITE}")
+        return []
+    else:
+        print(f"Failed to get months for {product}")
+        print("Status code:", r.status_code)
+        print("Response:", r.text)
+        return []
+
+
+
+# Download data for all months
+def download_product(product):
+    months = get_months(product)
+    for month in tqdm(months, desc=f"Downloading {product}"):
+        url = f"{BASE_URL}/data/{product}/{SITE}/{month}"
+        r = requests.get(url, headers=HEADERS)
+        if r.ok:
+            for f in r.json()['data']['files']:
+                if f['name'].endswith('.csv'):
+                    file_url = f['url']
+                    filename = f['name']
+                    file_data = requests.get(file_url, headers=HEADERS)
+                    with open(filename, 'wb') as out:
+                        out.write(file_data.content)
+        else:
+            print(f"Failed to download {product} {month}")
+
+# Main loop
+for product_id, product_name in DATA_PRODUCTS.items():
+    print(f"\nProcessing: {product_name} ({product_id})")
+    download_product(product_id)
